@@ -27,33 +27,6 @@ const movies = [
   },
 ];
 
-const users = [
-  {
-    id: 1,
-    firstname: "John",
-    lastname: "Cookie",
-    email: "john@gmail.com",
-    city: "Paris",
-    language: "French",
-  },
-  {
-    id: 2,
-    firstname: "Bob",
-    lastname: "Cookie",
-    email: "bob@gmail.com",
-    city: "Paris",
-    language: "French",
-  },
-  {
-    id: 3,
-    firstname: "Shannon",
-    lastname: "Aa",
-    email: "shannon@gmail.com",
-    city: "Zurich",
-    language: "German",
-  },
-];
-
 const getMovies = (req, res) => {
   database
     .query("select * from movies")
@@ -75,34 +48,6 @@ const getMovieById = (req, res) => {
         res.sendStatus(404);
       } else {
         res.json(movies[0]);
-      }
-    })
-    .catch((err) => {
-      console.error(err);
-      res.sendStatus(500);
-    });
-};
-
-const getUser = (req, res) => {
-  database
-    .query("select * from users")
-    .then(([users]) => {
-      res.json(users); // use res.json instead of console.log
-    })
-    .catch((err) => {
-      console.error(err);
-      res.sendStatus(500);
-    });
-};
-
-const getUserById = (req, res) => {
-  database
-    .query(`select * from users where id = ${req.params.id}`)
-    .then(([users]) => {
-      if (users.length === 0) {
-        res.sendStatus(404);
-      } else {
-        res.json(users[0]);
       }
     })
     .catch((err) => {
@@ -144,11 +89,31 @@ const postUser = (req, res) => {
     });
 };
 
+const putMovie = (req, res) => {
+  const id = parseInt(req.params.id);
+  const { title, director, year, color, duration } = req.body;
+
+  database
+    .query(
+      `update movies set title = ?, director = ?, year = ?, color = ?, duration = ? where id = ?`,
+      [title, director, year, color, duration, id]
+    )
+    .then(([result]) => {
+      if (result.affectedRows === 0) {
+        res.sendStatus(404);
+      } else {
+        res.sendStatus(204);
+      }
+    })
+    .catch((err) => {
+      console.error(err);
+      res.sendStatus(500);
+    });
+};
+
 module.exports = {
   getMovies,
   getMovieById,
   postMovie,
-  postUser,
-  getUser,
-  getUserById,
+  putMovie,
 };
