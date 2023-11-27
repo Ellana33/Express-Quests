@@ -56,20 +56,20 @@ describe("POST /api/users", () => {
       response.body.id
     );
 
-    const [movieInDatabase] = result;
+    const [userInDatabase] = result;
 
-    expect(movieInDatabase).toHaveProperty("id");
+    expect(userInDatabase).toHaveProperty("id");
 
-    expect(movieInDatabase).toHaveProperty("firstname");
-    expect(movieInDatabase).toHaveProperty("lastname");
-    expect(movieInDatabase).toHaveProperty("email");
-    expect(movieInDatabase).toHaveProperty("city");
-    expect(movieInDatabase).toHaveProperty("language");
-    expect(movieInDatabase.firstname).toStrictEqual(newUser.firstname);
-    expect(movieInDatabase.lastname).toStrictEqual(newUser.lastname);
-    expect(movieInDatabase.email).toStrictEqual(newUser.email);
-    expect(movieInDatabase.city).toStrictEqual(newUser.city);
-    expect(movieInDatabase.language).toStrictEqual(newUser.language);
+    expect(userInDatabase).toHaveProperty("firstname");
+    expect(userInDatabase).toHaveProperty("lastname");
+    expect(userInDatabase).toHaveProperty("email");
+    expect(userInDatabase).toHaveProperty("city");
+    expect(userInDatabase).toHaveProperty("language");
+    expect(userInDatabase.firstname).toStrictEqual(newUser.firstname);
+    expect(userInDatabase.lastname).toStrictEqual(newUser.lastname);
+    expect(userInDatabase.email).toStrictEqual(newUser.email);
+    expect(userInDatabase.city).toStrictEqual(newUser.city);
+    expect(userInDatabase.language).toStrictEqual(newUser.language);
   });
 
   it("should return an error", async () => {
@@ -80,5 +80,88 @@ describe("POST /api/users", () => {
       .send(movieWithMissingProps);
 
     expect(response.status).toEqual(500);
+  });
+});
+
+describe("PUT /api/users/:id", () => {
+  it("should edit movie", async () => {
+    const newUser = {
+      firstname: "Alice",
+      lastname: "O'Neil",
+      email: `${crypto.randomUUID()}@wild.co`,
+      city: "Toronto",
+      language: "English",
+    };
+
+    const [result] = await database.query(
+      "INSERT INTO users(firstname, lastname, email, city, language) VALUES (?, ?, ?, ?, ?)",
+      [
+        newUser.firstname,
+        newUser.lastname,
+        newUser.email,
+        newUser.city,
+        newUser.language,
+      ]
+    );
+
+    const id = result.insertId;
+
+    const updatedUser = {
+      firstname: "Ulysse",
+      lastname: "Tremblay",
+      email: `${crypto.randomUUID()}@wild.co`,
+      city: "Joliette",
+      language: "French",
+    };
+
+    const response = await request(app)
+      .put(`/api/users/${id}`)
+      .send(updatedUser);
+
+    expect(response.status).toEqual(204);
+
+    const [resulte] = await database.query(
+      "SELECT * FROM users WHERE id=?",
+      id
+    );
+
+    const [userInDatabase] = resulte;
+
+    expect(userInDatabase).toHaveProperty("id");
+
+    expect(userInDatabase).toHaveProperty("firstname");
+    expect(userInDatabase).toHaveProperty("lastname");
+    expect(userInDatabase).toHaveProperty("email");
+    expect(userInDatabase).toHaveProperty("city");
+    expect(userInDatabase).toHaveProperty("language");
+    expect(userInDatabase.firstname).toStrictEqual(updatedUser.firstname);
+    expect(userInDatabase.lastname).toStrictEqual(updatedUser.lastname);
+    expect(userInDatabase.email).toStrictEqual(updatedUser.email);
+    expect(userInDatabase.city).toStrictEqual(updatedUser.city);
+    expect(userInDatabase.language).toStrictEqual(updatedUser.language);
+  });
+
+  it("should return an error", async () => {
+    const userWithMissingProps = { firstname: "R" };
+
+    const response = await request(app)
+      .put(`/api/users/1`)
+      .send(userWithMissingProps);
+
+    expect(response.status).toEqual(500);
+  });
+
+  it("should return no movie", async () => {
+    const newUser = {
+      firstname: "Ulysse",
+      lastname: "Tremblay",
+      email: `${crypto.randomUUID()}@wild.co`,
+      city: "Joliette",
+      language: "French",
+    };
+
+    const response = await request(app).put("/api/users/0").send(newUser);
+
+    expect(response.status).toEqual(404);
   });
 });
