@@ -28,10 +28,24 @@ const users = [
 ];
 
 const getUser = (req, res) => {
+  let sql = "SELECT * FROM users";
+  const sqlValues = [];
+
+  if (req.query.language && req.query.city) {
+    sql += " WHERE language = ? AND city = ?";
+    sqlValues.push(req.query.language, req.query.city);
+  } else if (req.query.language) {
+    sql += " WHERE language = ?";
+    sqlValues.push(req.query.language);
+  } else if (req.query.city) {
+    sql += " WHERE city = ?";
+    sqlValues.push(req.query.city);
+  }
+
   database
-    .query("select * from users")
+    .query(sql, sqlValues)
     .then(([users]) => {
-      res.json(users); // use res.json instead of console.log
+      res.json(users);
     })
     .catch((err) => {
       console.error(err);
@@ -110,7 +124,7 @@ const deleteUser = (req, res) => {
       console.error(err);
       res.sendStatus(500);
     });
-}
+};
 
 module.exports = {
   getUser,
