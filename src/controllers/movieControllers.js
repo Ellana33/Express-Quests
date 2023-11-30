@@ -1,76 +1,52 @@
 const database = require("../../database");
+const MovieManager = require("../managers/movieManager");
+const UserManager = require("../managers/userManager")
 
-const movies = [
-  {
-    id: 1,
-    title: "Citizen Kane",
-    director: "Orson Wells",
-    year: "1941",
-    color: false,
-    duration: 120,
-  },
-  {
-    id: 2,
-    title: "The Godfather",
-    director: "Francis Ford Coppola",
-    year: "1972",
-    color: true,
-    duration: 180,
-  },
-  {
-    id: 3,
-    title: "Pulp Fiction",
-    director: "Quentin Tarantino",
-    year: "1994",
-    color: true,
-    duration: 180,
-  },
-];
+const getMovies = async (req, res) => {
+  const movieManager = new MovieManager();
 
-const getMovies = (req, res) => {
-  let sql = "select * from movies";
-  const sqlValues = [];
-
-  if (req.query.color != null) {
-    sql += " where color = ?";
-    sqlValues.push(req.query.color);
+  try {
+    const movies = await movieManager.getAll(req);
+    res.json(movies);
+  } catch (err) {
+    console.error(err);
+    res.sendStatus(500);
   }
-
-  if (req.query.max_duration != null) {
-    sql += " and duration <= ?";
-    sqlValues.push(req.query.max_duration);
-  } else if (req.query.max_duration != null) {
-    sql += " where duration <= ?";
-    sqlValues.push(req.query.max_duration);
-  }
-
-  database
-    .query(sql, sqlValues)
-    .then(([movies]) => {
-      res.json(movies); // use res.json instead of console.log
-    })
-    .catch((err) => {
-      console.error(err);
-      res.sendStatus(500);
-    });
 };
 
-const getMovieById = (req, res) => {
+const getFirst = async (req, res) => {
+  const movieManager = new MovieManager();
+  const userManager = new UserManager();
+
+  try {
+    const movies = await movieManager.getOne(req.params.id);
+    const users = await userManager.getOne(req.params.id);
+
+    res.json({movies, users});
+  } catch (err) {
+    console.error(err);
+    res.sendStatus(500);
+  }
+};
+
+const getMovieById = async (req, res) => {
   const id = parseInt(req.params.id);
-  database
-    .query(`select * from movies where id = ${id}`)
-    .then(([movies]) => {
-      if (movies.length === 0) {
-        res.sendStatus(404);
-      } else {
-        res.json(movies[0]);
-      }
-    })
-    .catch((err) => {
-      console.error(err);
-      res.sendStatus(500);
-    });
+  const movieManager = new MovieManager();
+
+  try {
+    const movie = await movieManager.getOne(id);
+    if (movie === null) {
+      res.sendStatus(404);
+    } else {
+      res.json(movie);
+    }
+  } catch (err) {
+    console.error(err);
+    res.sendStatus(500);
+  }
 };
+
+
 
 const postMovie = (req, res) => {
   const { title, director, year, color, duration } = req.body;
@@ -135,4 +111,5 @@ module.exports = {
   postMovie,
   putMovie,
   deleteMovie,
+  getFirst,
 };

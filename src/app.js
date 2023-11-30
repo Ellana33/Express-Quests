@@ -12,6 +12,8 @@ const validateMovie = require("./middlewares/validateMovie");
 const validateUser = require("./middlewares/validateUser");
 
 app.get("/api/movies", movieControllers.getMovies);
+app.get("/api/movies-first/:id", movieControllers.getFirst);
+
 app.get("/api/movies/:id", movieControllers.getMovieById);
 app.get("/api/users", userControllers.getUser);
 app.get("/api/users/:id", userControllers.getUserById);
