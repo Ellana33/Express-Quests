@@ -1,31 +1,5 @@
 const database = require("../../database");
-
-const users = [
-  {
-    id: 1,
-    firstname: "John",
-    lastname: "Cookie",
-    email: "john@gmail.com",
-    city: "Paris",
-    language: "French",
-  },
-  {
-    id: 2,
-    firstname: "Bob",
-    lastname: "Cookie",
-    email: "bob@gmail.com",
-    city: "Paris",
-    language: "French",
-  },
-  {
-    id: 3,
-    firstname: "Shannon",
-    lastname: "Aa",
-    email: "shannon@gmail.com",
-    city: "Zurich",
-    language: "German",
-  },
-];
+const UserManager = require("../managers/userManager");
 
 const getUser = (req, res) => {
   let sql = "SELECT * FROM users";
@@ -69,22 +43,13 @@ const getUserById = (req, res) => {
     });
 };
 
-const postUser = (req, res) => {
-  const { firstname, lastname, email, city, language } = req.body;
-  database
-    .query(
-      `insert into users (firstname, lastname, email, city, language) values (?, ?, ?, ?, ?)`,
-      [firstname, lastname, email, city, language]
-    )
-    .then(([result]) => {
-      res.status(201).send({
-        id: result.insertId,
-      });
-    })
-    .catch((err) => {
-      console.error(err);
-      res.sendStatus(500);
-    });
+const postUser = async (req, res) => {
+  const userManager = new UserManager();
+  try {
+    res.status(201).send(await userManager.create(req.body));
+  } catch (error) {
+    res.status(422).send({ error: error.message });
+  }
 };
 
 const putUser = (req, res) => {
@@ -126,10 +91,21 @@ const deleteUser = (req, res) => {
     });
 };
 
+const postLogin = async (req, res) => {
+  const userManager = new UserManager();
+  try {
+    const result = await userManager.getOneByEmail(req.body.email);
+    res.send(result[0]);
+  } catch (error) {
+    res.sendStatus(404);
+  }
+};
+
 module.exports = {
   getUser,
   getUserById,
   postUser,
   putUser,
   deleteUser,
+  postLogin,
 };

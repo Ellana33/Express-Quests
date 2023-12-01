@@ -10,6 +10,7 @@ const movieControllers = require("./controllers/movieControllers");
 const userControllers = require("./controllers/userControllers");
 const validateMovie = require("./middlewares/validateMovie");
 const validateUser = require("./middlewares/validateUser");
+const loginMiddlewares = require("./middlewares/loginMiddlewares");
 
 app.get("/api/movies", movieControllers.getMovies);
 app.get("/api/movies-first/:id", movieControllers.getFirst);
@@ -20,8 +21,8 @@ app.get("/api/users/:id", userControllers.getUserById);
 
 app.post("/api/movies", validateMovie, movieControllers.postMovie);
 app.post("/api/users", validateUser, userControllers.postUser);
-
-app.put("/api/movies/:id",validateMovie, movieControllers.putMovie);
+app.post("/api/users/login", validateUser, loginMiddlewares, userControllers.postLogin);
+app.put("/api/movies/:id", validateMovie, movieControllers.putMovie);
 app.put("/api/users/:id", validateUser, userControllers.putUser);
 
 app.delete("/api/movies/:id", movieControllers.deleteMovie);
